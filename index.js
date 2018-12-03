@@ -68,7 +68,7 @@ io.on('connection', socket => {
   	});
 
   	socket.on('forfeit', game => {
-  		var otherUser = game.user1==socket.id?game.user1:game.user2;
+  		var otherUser = game.user1==socket.id?game.user2:game.user1;
   		io.to(`${otherUser}`).emit('gameEndedUnexpectedly',"Other player forfeited, you won!");
   	})
   	socket.on('makeAMove', data => { 
@@ -82,15 +82,13 @@ io.on('connection', socket => {
   	socket.on('disconnect', () => {
   		var terminatedGame = gamePool.find(function(game) { 
 		  	return game.user1==socket.id||game.user2==socket.id;
-		}); 
-		if(terminatedGame){
-			var otherUser = terminatedGame.user1==socket.id?terminatedGame.user1:terminatedGame.user2;
+		  }); 
+  		if(terminatedGame){
+  			var otherUser = terminatedGame.user1==socket.id?terminatedGame.user2:terminatedGame.user1;
 
-			io.to(`${otherUser}`).emit('gameEndedUnexpectedly',"Other player forfeited, you won!");
-		}
-		//publicWaitingPool.push(userWait);
-		//tryMatchGame();
-  		clients.splice(clients.indexOf(socket.id),1);
+  			io.to(`${otherUser}`).emit('gameEndedUnexpectedly',"Other player forfeited, you won!");
+  		}
+			clients.splice(clients.indexOf(socket.id),1);
   		console.log(socket.id+' disconnected');
 
   	});
@@ -103,7 +101,7 @@ app.get("/", function(request, response){
 });
 
 
-var port = process.env.PORT || 3000;
+var port = process.env.PORT || 80;
 
 http.listen(port, function() {
     console.log('Our app is running on http://localhost:' + port);

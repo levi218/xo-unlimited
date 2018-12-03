@@ -1,5 +1,7 @@
 var board;
-var boardSize = 12;
+var boardSize = 24;
+var worldLocation;
+var worldScale;
 var cellH;
 var cellW;
 var turn = 0;
@@ -19,6 +21,7 @@ var txtFriendId;
 var btnRequestPrivateGame;
 var txtStatus;
 var txtName;
+var lastMove;
 function setup() {
 	var divGameHolder = createDiv('');
 	var divId = createDiv('');
@@ -35,7 +38,7 @@ function setup() {
 	btnRequestGame = createButton('Find game');
 	btnRequestGame.mousePressed(()=>{
 		if(isInGame){
-			socket.emit('forfeit');
+			socket.emit('forfeit',game);
 		}
 		socket.emit('requestGame');	
 		txtStatus.html('Finding game...');
@@ -48,7 +51,7 @@ function setup() {
 	btnRequestPrivateGame = createButton('Go Private Game');
 	btnRequestPrivateGame.mousePressed(()=>{
 		if(isInGame){
-			socket.emit('forfeit');
+			socket.emit('forfeit',game);
 		}
 		socket.emit('requestPrivateGame',txtFriendId.value());	
 		txtStatus.html('Waiting for partner...');
@@ -63,7 +66,7 @@ function setup() {
 
 	var divStatus = createDiv('');
 	divStatus.style('margin','20px');
-	txtStatus = createElement('span','Welcome to x-o unlimited ');
+	txtStatus = createElement('span','Welcome to X-O Unlimited');
 	txtStatus.style('margin','20px');
 	txtStatus.parent(divStatus);
 
@@ -71,7 +74,8 @@ function setup() {
 	var canvas = createCanvas(600,600);
 	canvas.style('border','2px solid #FFF');
 	canvas.style('margin-bottom','15px');
-
+	canvas.id('canvas');
+	disableRightClickContextMenu(document.getElementById('canvas'));
 	divGameHolder.child(divId);
 	divGameHolder.child(divFind);
 	divGameHolder.child(divStatus);
@@ -79,8 +83,10 @@ function setup() {
 	divGameHolder.parent('game_holder');
 
 
-	cellH = height/boardSize;
-	cellW = width/boardSize;
+	cellH = height/12;
+	cellW = width/12;
+	worldLocation = createVector(-cellW*boardSize/2,-cellH*boardSize/2);
+    worldScale = 1.0;
 	drawBoard();
 	
     setupSocket();
@@ -88,9 +94,7 @@ function setup() {
 
 function setupSocket(){
 	socket.on('gameStart', function (game) {
-	    console.log(game);
 	    currentGame = game;
-	    console.log(currentGame.user1);
 	    if(currentGame.user1 == socket.id){
 	    	thisPlayer = 1;
 	    	txtStatus.html('You go first!');
@@ -103,19 +107,11 @@ function setupSocket(){
 
 	socket.on('opponentMoved', function (data) {
 		var player = turn%2+1;
+		lastMove = createVector(data.x,data.y);
 		board[data.y][data.x]=player;
 		if(isWon(player)){
 			redraw();
-			fill(color(255,255,255,80));
-			rect(0,0,width,height);
-
-			stroke(123);
-			strokeWeight(4);
-			textSize(min(cellW,cellH));
-			textAlign(CENTER, CENTER);
-			fill(255);
-  			text("Player: "+player+" won!",width/2,height/2);
-
+			displayMessageOverlay((player==1?'X':'O')+" won!");
   			isInGame = false;
 
 		}
@@ -127,6 +123,14 @@ function setupSocket(){
 		alert(msg);
 	});
 	socket.on('gameEndedUnexpectedly', function (msg) {
+		displayMessageOverlay(msg);
+		txtStatus.html('Game ended');
+		isInGame = false;
+	});
+}
+function displayMessageOverlay(msg){
+	scale(1/worldScale);
+	translate(-worldLocation.x,-worldLocation.y);
 		fill(color(255,255,255,80));
 		rect(0,0,width,height);
 
@@ -135,31 +139,38 @@ function setupSocket(){
 		textSize(min(cellW,cellH));
 		textAlign(CENTER, CENTER);
 		fill(255);
-		text(msg);
-		isInGame = false;
-	});
+		text(msg,50,0,width-25,height);	
 }
 function updateTurnStatus(){
-	var player = turn%2+1;
-	if(player == thisPlayer){
-		txtStatus.html('Your turn');
+	if(isInGame){
+		var player = turn%2+1;
+		if(player == thisPlayer){
+			txtStatus.html('Your turn');
+		}else{
+			txtStatus.html('Wait for your opponent');
+		}
 	}else{
-		txtStatus.html('Wait for your opponent');
+		txtStatus.html('Welcome to X-O Unlimited');
 	}
 }
 function newGame(){
 	board = createArray(boardSize,boardSize);	
 	isInGame = true; 
 	turn = 0;
+	lastMove = createVector(-1,-1);
+	worldLocation = createVector(-cellW*boardSize/2,-cellH*boardSize/2);
+    worldScale = 1.0;
 
 }
 function drawBoard(){
 	background(0);
+	translate(worldLocation.x, worldLocation.y);
+    scale(worldScale);
   	stroke(255);
   	strokeWeight(1);
   	for(var i = 1;i<boardSize;i++){
-		line(0,i*cellH,width,i*cellH);  		
-		line(i*cellW,0,i*cellW,height);  		
+		line(0,i*cellH,cellH*boardSize,i*cellH);  		
+		line(i*cellW,0,i*cellW,cellW*boardSize);  		
   	}
 }
 function draw() {
@@ -168,14 +179,20 @@ function draw() {
 
 		textSize(min(cellW,cellH));
 		textAlign(CENTER, CENTER);
-		fill(255);
+		fill(222);
 	  	for(var i = 0; i<boardSize;i++){
 	  		for(var j = 0;j<boardSize;j++){
+	  			if(i==lastMove.x&&j==lastMove.y){
+	  				fill(200,0,0);
+	  			}
 	  			if(board[j][i]==1) {
 	  				text("X",(i+0.5)*cellW,(j+0.5)*cellH);
 	  			}
 	  			if(board[j][i]==2) {
 	  				text("O",(i+0.5)*cellW,(j+0.5)*cellH);
+	  			}
+	  			if(i==lastMove.x&&j==lastMove.y){
+	  				fill(222);
 	  			}
 	  		}
 	  	}
@@ -183,39 +200,56 @@ function draw() {
 }
 
 function mousePressed(){
-	var player = turn%2+1;
-	if(isInGame&&thisPlayer==player){
-		var x = floor(mouseX/cellW);
-		var y = floor(mouseY/cellH);
-		if(x<boardSize&&y<boardSize&&x>=0&&y>=0&&board[y][x]==0){
-			board[y][x]=player;
-			socket.emit('makeAMove',
-				{
-					'game':currentGame,
-					'x':x,
-					'y':y
-				}
-			);
-			if(isWon(player)){
-				redraw();
-				fill(color(255,255,255,80));
-				rect(0,0,width,height);
-
-				stroke(123);
-				strokeWeight(4);
-				textSize(min(cellW,cellH));
-				textAlign(CENTER, CENTER);
-				fill(255);
-	  			text("Player "+player+" won!",width/2,height/2);
-
-	  			isInGame = false;
-
+	if(mouseButton===LEFT){
+		var anchor1 = localToGlobal(0,0);
+		var anchor2 = localToGlobal(width,height);
+		var mouseLocation = localToGlobal(mouseX,mouseY);
+		if(mouseLocation.x<anchor1.x
+			||mouseLocation.y<anchor1.y
+			||mouseLocation.x>=anchor2.x
+			||mouseLocation.y>=anchor2.y)
+			{
+				return false;
 			}
-			turn ++;
-			updateTurnStatus();
-			
+		var player = turn%2+1;
+		if(isInGame&&thisPlayer==player){
+			var x = floor(mouseLocation.x/cellW);
+			var y = floor(mouseLocation.y/cellH);
+			if(x<boardSize&&y<boardSize&&x>=0&&y>=0&&board[y][x]==0){
+				board[y][x]=player;
+				socket.emit('makeAMove',
+					{
+						'game':currentGame,
+						'x':x,
+						'y':y
+					}
+				);
+				lastMove = createVector(x,y);
+				if(isWon(player)){
+					redraw();
+					displayMessageOverlay((player==1?'X':'O')+" won!");
+		  			isInGame = false;
+				}
+				turn ++;
+				updateTurnStatus();
+				
+			}
 		}
 	}
+	return false;
+}
+function mouseDragged(){
+	if(mouseButton===RIGHT){
+		worldLocation.x += (mouseX-pmouseX);
+		worldLocation.y += (mouseY-pmouseY);
+	}
+	return false;
+}
+
+function mouseWheel(event){
+	worldScale += 0.001*event.delta;
+	worldLocation.x-=1*mouseX*0.001*event.delta
+	worldLocation.y-=1*mouseY*0.001*event.delta
 }
 function isStreak(x,y,dirX,dirY,player){
 	var winLen = boardSize<5?boardSize:5;
@@ -243,4 +277,18 @@ function isWon(player){
 		}		
 	}
 	return false;
+}
+
+  function localToGlobal(x,y){
+    var result = createVector((x-worldLocation.x)/worldScale,(y-worldLocation.y)/worldScale)
+    return result;
+  }
+
+  function disableRightClickContextMenu(element) {
+  element.addEventListener('contextmenu', function(e) {
+    if (e.button == 2) {
+      // Block right-click menu thru preventing default action.
+      e.preventDefault();
+    }
+  });
 }
