@@ -6,7 +6,7 @@ var turn = 0;
 var isInGame = false;
 var thisPlayer;
 var currentGame;
-var socket = io("http://opensurvey.website/xo-unlimited");
+var socket = io("127.0.0.1:3000");
 function createArray(w,h){
 	var result = new Array(h);
 	for(var i = 0;i<h;i++){

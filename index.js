@@ -95,9 +95,10 @@ io.on('connection', socket => {
 
   	});
 });
-// http.listen(3000,function(){
-// 	console.log('Server listening on port 3000');	
-// });
+var port = process.env.PORT || 3000;
+http.listen(port,function(){
+	console.log('Server listening on port 3000');	
+});
 
 
 
@@ -107,7 +108,7 @@ io.on('connection', socket => {
 app.get("/", function(request, response){ //root dir
    response.send("Hello!!");
 });
-var port = process.env.PORT || 3000;
-app.listen(port, function() {
+
+app.listen(80, function() {
     console.log('Our app is running on http://localhost:' + port);
 });
