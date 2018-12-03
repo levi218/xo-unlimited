@@ -102,9 +102,9 @@ http.listen(3000,function(){
 
 
 //Express.js
-// app.use(express.static('public'));
+ app.use(express.static('public'));
 
 //app.get("/a", function(request, response){ //root dir
 //    response.send("Hello!!");
 //});
-// app.listen(80,"127.0.0.1");
+ app.listen(80);
