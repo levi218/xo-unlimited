@@ -95,6 +95,14 @@ io.on('connection', socket => {
 
   	});
 });
+//Express.js
+ app.use(express.static(__dirname + '/public'));
+
+app.get("/", function(request, response){ //root dir
+   res.sendFile(__dirname + '/public/index.html');
+});
+
+
 var port = process.env.PORT || 3000;
 http.listen(port,function(){
 	console.log('Server listening on port 3000');	
@@ -102,13 +110,8 @@ http.listen(port,function(){
 
 
 
-//Express.js
- app.use(express.static(__dirname + '/public'));
 
-app.get("/", function(request, response){ //root dir
-   response.send("Hello!!");
-});
 
-app.listen(80, function() {
-    console.log('Our app is running on http://localhost:' + port);
-});
+// app.listen(80, function() {
+//     console.log('Our app is running on http://localhost:' + port);
+// });
