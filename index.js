@@ -102,9 +102,12 @@ http.listen(3000,function(){
 
 
 //Express.js
- app.use(express.static('public'));
+ app.use(express.static(__dirname + '/public'));
 
-//app.get("/a", function(request, response){ //root dir
-//    response.send("Hello!!");
-//});
- app.listen(80, "https://xo-unlimited.herokuapp.com/");
+app.get("/a", function(request, response){ //root dir
+   response.send("Hello!!");
+});
+var port = process.env.PORT || 8080;
+app.listen(port, function() {
+    console.log('Our app is running on http://localhost:' + port);
+});
