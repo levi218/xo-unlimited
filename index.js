@@ -1,7 +1,7 @@
 // BASE SETUP
 const express = require('express');
 const app = express();
-const http = require('http').createServer(express);
+const http = require('http').Server(app);
 const io = require('socket.io')(http);
 var clients = [];
 var publicWaitingPool = [];
@@ -96,22 +96,15 @@ io.on('connection', socket => {
   	});
 });
 //Express.js
- app.use(express.static(__dirname + '/public'));
+ app.use(express.static('public'));
 
-app.get("/", function(request, response){ //root dir
-   res.sendFile(__dirname + '/public/index.html');
+app.get("/a", function(request, response){
+   response.sendFile(__dirname + '/public/index.html');
 });
 
 
 var port = process.env.PORT || 3000;
-http.listen(port,function(){
-	console.log('Server listening on port 3000');	
+
+http.listen(port, function() {
+    console.log('Our app is running on http://localhost:' + port);
 });
-
-
-
-
-
-// app.listen(80, function() {
-//     console.log('Our app is running on http://localhost:' + port);
-// });
