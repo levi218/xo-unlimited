@@ -96,9 +96,9 @@ io.on('connection', socket => {
   	});
 });
 //Express.js
- app.use(express.static('public'));
+ //app.use(express.static('public'));
 
-app.get("/a", function(request, response){
+app.get("/", function(request, response){
    response.sendFile(__dirname + '/public/index.html');
 });
 
