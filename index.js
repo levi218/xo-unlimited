@@ -37,13 +37,18 @@ function tryMatchGame(){
 
 
 io.on('connection', socket => { 
-	console.log(socket.id+" connected!");
-	clients.push(socket.id);
-
+  	console.log(socket.id+" connected!");
+    clients.push(socket.id);
+    io.emit('clientJoined',socket.id);
+    socket.on('requestClientList', () => { 
+      socket.emit('clientList',clients);
+    });
   	socket.on('requestGame', () => { 
-		publicWaitingPool.push(socket.id);
-		tryMatchGame();
-		console.log(publicWaitingPool.length+"   "+clients.length+"   "+gamePool.length);
+      if(publicWaitingPool.indexOf(socket.id)==-1){
+  		  publicWaitingPool.push(socket.id);
+    		tryMatchGame();
+    		console.log(publicWaitingPool.length+"   "+clients.length+"   "+gamePool.length);
+      }
   	});
 
   	socket.on('cancelRequest', () => {
@@ -51,16 +56,17 @@ io.on('connection', socket => {
   	});
 
   	socket.on('requestPrivateGame', (oppId) => {
-
-  		if(clients.indexOf(oppId)!=-1){
-	  		if(privateWaitingPool.indexOf(oppId)!=-1){
-	  			matchGame(socket.id,oppId,privateWaitingPool);
-	  		}else{
-	  			privateWaitingPool.push(socket.id);
-	  		}
-  		}else{
-  			io.to(`${socket.id}`).emit('playerNotConnected', 'This id is not connected');
-  		}
+      if(publicWaitingPool.indexOf(socket.id)==-1){
+    		if(clients.indexOf(oppId)!=-1){
+  	  		if(privateWaitingPool.indexOf(oppId)!=-1){
+  	  			matchGame(socket.id,oppId,privateWaitingPool);
+  	  		}else{
+  	  			privateWaitingPool.push(socket.id);
+  	  		}
+    		}else{
+    			io.to(`${socket.id}`).emit('playerNotConnected', 'This id is not connected');
+    		}
+      }
   	});
 
   	socket.on('cancelRequestPrivate',() => {
@@ -90,6 +96,7 @@ io.on('connection', socket => {
   		}
 			clients.splice(clients.indexOf(socket.id),1);
   		console.log(socket.id+' disconnected');
+      io.emit('clientLeft',socket.id);
 
   	});
 });

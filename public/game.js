@@ -22,6 +22,8 @@ var btnRequestPrivateGame;
 var txtStatus;
 var txtName;
 var lastMove;
+var divClients;
+var clients;
 function setup() {
 	var divGameHolder = createDiv('');
 	var divId = createDiv('');
@@ -82,6 +84,8 @@ function setup() {
 	divGameHolder.child(canvas);
 	divGameHolder.parent('game_holder');
 
+	divClients = createDiv('');
+	divClients.parent('client_list');
 
 	cellH = height/12;
 	cellW = width/12;
@@ -91,8 +95,30 @@ function setup() {
 	
     setupSocket();
 }
-
+function updateClientList(data, view){
+	var content = "<ul>";
+	for(var i =0;i<data.length;i++){
+		content+="<li>";
+		content+=data[i];
+		content+="</li>";
+	}
+	content+="</ul>";
+	view.html(content);
+}
 function setupSocket(){
+	socket.on('clientList', function (data) {
+		clients = data;
+		updateClientList(clients,divClients);
+	});
+	socket.on('clientJoined', function (data){
+		clients.push(data);
+		updateClientList(clients,divClients);
+	});
+	socket.on('clientLeft', function (data){
+		clients.splice(clients.indexOf(data),1);
+		updateClientList(clients,divClients);
+	});
+	
 	socket.on('gameStart', function (game) {
 	    currentGame = game;
 	    if(currentGame.user1 == socket.id){
@@ -127,6 +153,8 @@ function setupSocket(){
 		txtStatus.html('Game ended');
 		isInGame = false;
 	});
+
+	socket.emit('requestClientList');
 }
 function displayMessageOverlay(msg){
 	scale(1/worldScale);

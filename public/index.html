@@ -36,7 +36,14 @@
     input[type="text"]{
       padding:10px;
     }
-
+    ul {
+      font-size: 13;
+      list-style-type: none;
+    }
+    #client_list{
+      border: 1px solid #DDD;
+      overflow: hidden;
+    }
   </style>
 </head>
 
@@ -47,7 +54,14 @@
       <img src="/resources/github_icon.png" width="30" height="30" alt="">
     </span>
   </nav>
-  <div id="game_holder">
+  <div class ="container-fluid">
+    <div class="row">
+      <div id="game_holder" class="col-lg-6 offset-lg-3">
+      </div>
+      <div id="client_list" class="col-lg-2 py-5 offset-lg-1">
+        <h4>Online Users</h4>
+      </div>
+    </div>
   </div>
   <nav class="navbar navbar-dark bg-dark">
     <small class="navbar-text">Levi - 2018</small>
