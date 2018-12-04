@@ -23,7 +23,7 @@ var txtStatus;
 var txtName;
 var lastMove;
 var divClients;
-var clients;
+var clients = [];
 function setup() {
 	var divGameHolder = createDiv('');
 	var divId = createDiv('');
@@ -115,8 +115,10 @@ function setupSocket(){
 		updateClientList(clients,divClients);
 	});
 	socket.on('clientLeft', function (data){
-		clients.splice(clients.indexOf(data),1);
-		updateClientList(clients,divClients);
+		if(clients.indexOf(data)!=-1){
+			clients.splice(clients.indexOf(data),1);
+			updateClientList(clients,divClients);
+		}
 	});
 	
 	socket.on('gameStart', function (game) {
