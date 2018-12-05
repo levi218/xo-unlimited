@@ -294,6 +294,17 @@ function isStreak(x,y,dirX,dirY,player){
 			return false;
 		}
 	}	
+	// special case: when one checked 5 in a rows but both side blocked by opponent (eg: O-X-X-X-X-X-O)
+	if((x-dirX)>=0&&(x-dirX)<boardSize
+		&&(y-dirY)>=0&&(y-dirY)<boardSize
+		&&board[y-dirY][x-dirX]!=0
+		&&board[y-dirY][x-dirX]!=player
+		&&(x+winLen*dirX)>=0&&(x+winLen*dirX)<boardSize
+		&&(y+winLen*dirY)>=0&&(y+winLen*dirY)<boardSize
+		&&board[y+winLen*dirY][x+winLen*dirX]!=0
+		&&board[y+winLen*dirY][x+winLen*dirX]!=player
+		) return false;
+	
 	return true;
 }
 function isWon(player){
