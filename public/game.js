@@ -239,7 +239,7 @@ function mousePressed(){
 			||mouseLocation.x>=anchor2.x
 			||mouseLocation.y>=anchor2.y)
 			{
-				return false;
+				return true;
 			}
 		var player = turn%2+1;
 		if(isInGame&&thisPlayer==player){
@@ -266,14 +266,12 @@ function mousePressed(){
 			}
 		}
 	}
-	return false;
 }
 function mouseDragged(){
 	if(mouseButton===RIGHT){
 		worldLocation.x += (mouseX-pmouseX);
 		worldLocation.y += (mouseY-pmouseY);
 	}
-	return false;
 }
 
 function mouseWheel(event){
@@ -304,7 +302,7 @@ function isStreak(x,y,dirX,dirY,player){
 		&&board[y+winLen*dirY][x+winLen*dirX]!=0
 		&&board[y+winLen*dirY][x+winLen*dirX]!=player
 		) return false;
-	
+
 	return true;
 }
 function isWon(player){
