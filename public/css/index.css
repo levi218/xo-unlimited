@@ -1,0 +1,29 @@
+    body {padding: 0; margin: 0; font-size: 20; text-align: center; background: #222222; color:#EEE;} 
+    button {    
+      background-color: white;
+      color: black;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 20;
+      border: 2px solid #555555;
+      -webkit-transition-duration: 0.4s; /* Safari */
+      transition-duration: 0.4s;
+    }
+    button:hover {
+      background-color: #555555;
+      color: white;
+    }
+    input[type="text"]{
+      background: #444;
+      border: 1px solid #DDD;
+      color: #DDD;
+    }
+    ul {
+      font-size: 13;
+      list-style-type: none;
+      
+    }
+    #client_list{
+      border: 1px solid #DDD;
+      overflow: hidden;
+    }
