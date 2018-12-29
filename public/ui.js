@@ -5,28 +5,64 @@ var txtStatus;
 var txtName;
 var lastMove;
 var divClients;
+var messageBox;
+var txtMessage;
 var clients = [];
-
+var isFinding;
+var currentModal;
 function setupUI(){
-		var divGameHolder = createDiv('');
+	var divGameHolder = createDiv('');
 	var divId = createDiv('');
 	divId.style('margin','15px');
 
 	var txtMyId = createElement('span',"Your id: <b>"+socket.id+"</b>");
 
 	txtName = createInput();
+	txtName.changed(()=>{
+		socket.emit('playerNameChangeRequest',txtName.value());
+	});
+	socket.on('playerNameChangeResponse', function (status) {
+		if(status==false){
+			showModal("Name unavailable",()=>{removeModal();});
+			txtName.value('')
+		}else{
+			showModal("Name changed",()=>{removeModal();});
+		}
+		
+	});
+
 	divId.child(txtMyId);
 	divId.child(createElement('span', ' or use a nickname: '));
 	divId.child(txtName);
 
 	var divFind = createDiv(''); 
+
+	isFinding = false;
 	btnRequestGame = createButton('Find game');
 	btnRequestGame.mousePressed(()=>{
 		if(board.isInGame){
-			socket.emit('forfeit',currentGame);
+			// if is in game, show confirmation before ending game and find new game
+			showModal(
+				"Are you sure to forfeit this game?",
+				()=>{
+					socket.emit('forfeit',currentGame);
+					socket.emit('requestGame');	
+					updateFindingButton(true);
+					removeModal();
+					return true;
+				},
+				()=>{removeModal();return true;}
+			);
+		}else{
+			// if not, check if it's finding and change button accordingly 
+			if(isFinding){
+				socket.emit('cancelRequest');	
+				updateFindingButton(false);
+			}else{
+				socket.emit('requestGame',txtFriendId.value());	
+				updateFindingButton(true);
+			}
 		}
-		socket.emit('requestGame');	
-		txtStatus.html('Finding game...');
 	});
 	divFind.child(btnRequestGame);
 	divFind.child(createElement('span','    OR    '));
@@ -35,11 +71,33 @@ function setupUI(){
 	
 	btnRequestPrivateGame = createButton('Go Private Game');
 	btnRequestPrivateGame.mousePressed(()=>{
+		// the procedure for requesting private game is almost the same as finding normal game
+		// might not be optimal
+		// Option: notify this player when other player denied the request?
 		if(board.isInGame){
-			socket.emit('forfeit',currentGame);
-		}
-		socket.emit('requestPrivateGame',txtFriendId.value());	
-		txtStatus.html('Waiting for partner...');
+			// if is in game, show confirmation before ending game and find new game
+			showModal(
+				"Are you sure to forfeit this game?",
+				()=>{
+					socket.emit('forfeit',currentGame);
+					socket.emit('requestPrivateGame',txtFriendId.value());	
+					updateFindingButton(true);
+					removeModal();
+					return true;
+				},
+				()=>{removeModal();return true;}
+			);
+		}else{
+			// if not, check if it's finding and change button accordingly 
+			if(isFinding){
+				//socket.emit('cancelRequest');	
+				updateFindingButton(false);
+			}else{
+				socket.emit('requestPrivateGame',txtFriendId.value());	
+				updateFindingButton(true);
+				txtStatus.html('Waiting for partner...');
+			}
+		}		
 	});
 	divGoPrivate.child(btnRequestPrivateGame);
 	txtFriendId = createInput();
@@ -69,13 +127,43 @@ function setupUI(){
 
 	divClients = createDiv('');
 	divClients.parent('client_list');
+
+	messageBox = select('#txt_messages');
+	txtMessage = select('#txt_send');
+
+	txtMessage.changed(()=>{
+		if(keyCode==13){
+			socket.emit('message',txtMessage.value());
+			txtMessage.value('');
+		}
+	});
+	socket.on('message',function(msg){
+		messageBox.value(messageBox.value()+'\n'+msg);
+		messageBox.elt.scrollTop = messageBox.elt.scrollHeight;
+	});
 }
 
+function updateFindingButton(status){
+	isFinding = status;
+	btnRequestPrivateGame.elt.disabled = status;
+	if(isFinding){
+		btnRequestGame.html('Cancel');
+		txtStatus.html('Finding game...');
+	}
+	else{
+		btnRequestGame.html('Find game');
+		txtStatus.html('Welcome');
+	}
+}
 function updateClientList(data, view){
 	var content = "<ul>";
 	for(var i =0;i<data.length;i++){
 		content+="<li>";
-		content+=data[i];
+		if(data[i].name){
+			content+=data[i].name+" ("+data[i].id+")";
+		}else{
+			content+=data[i].id;
+		}
 		content+="</li>";
 	}
 	content+="</ul>";
@@ -105,4 +193,34 @@ function updateTurnStatus(){
 	}else{
 		txtStatus.html('Welcome to X-O Unlimited');
 	}
+}
+
+function showModal(content, callback1, callback2){
+	if(!currentModal){
+		var divModal = createDiv('');
+		divModal.addClass('cus-modal');
+		var divContent = createDiv('');
+		divContent.addClass('cus-modal-content');
+		divContent.parent(divModal);
+		var spanContent = createElement('span',content);
+		spanContent.style('margin-bottom','20px');
+		spanContent.parent(divContent);
+
+		if(callback1){
+			var btn1 = createButton('OK');
+			btn1.mouseClicked(callback1);
+			btn1.parent(divContent);
+		}
+		if(callback2){
+			var btn2 = createButton('Cancel');
+			btn2.mouseClicked(callback2);
+			btn2.parent(divContent);
+		}
+		divModal.addClass('cus-show-modal');
+		currentModal = divModal;
+	}
+}
+function removeModal(){
+	currentModal.remove();
+	currentModal=null;
 }

@@ -23,14 +23,28 @@ function setupSocket(){
 		clients.push(data);
 		updateClientList(clients,divClients);
 	});
-	socket.on('clientLeft', function (data){
-		if(clients.indexOf(data)!=-1){
-			clients.splice(clients.indexOf(data),1);
+	socket.on('clientLeft', function (id){
+		var index = clients.findIndex(x=>x.id==id);
+		if(index!=-1){
+			clients.splice(index,1);
 			updateClientList(clients,divClients);
 		}
 	});
-	
+
+	socket.on('privateGameInvitation', function (oppId) {
+		showModal(
+			"Player '"+oppId+"' want to invite you to a private game. Accept?",
+			()=>{
+				socket.emit('privateGameAccepted',oppId);
+				removeModal();
+			},
+			()=>{removeModal();}
+		);
+	});
+
+
 	socket.on('gameStart', function (game) {
+		updateFindingButton(false);
 	    currentGame = game;
 	    if(currentGame.user1 == socket.id){
 	    	thisPlayer = 1;
@@ -59,9 +73,7 @@ function setupSocket(){
 		alert(msg);
 	});
 	socket.on('gameEndedUnexpectedly', function (msg) {
-		displayMessageOverlay(msg);
-		txtStatus.html('Game ended');
-		board.isInGame = false;
+		board.endGame(msg);
 	});
 
 	socket.emit('requestClientList');
@@ -110,7 +122,12 @@ function mouseDragged(){
 }
 
 function mouseWheel(event){
-	board.worldScale += 0.001*event.delta;
-	board.worldLocation.x-=1*mouseX*0.001*event.delta
-	board.worldLocation.y-=1*mouseY*0.001*event.delta
+	if(!board.isInBoard(mouseX,mouseY)) return true;
+	else{
+		var zoomPoint = board.localToGlobal(mouseX,mouseY);
+		board.worldScale += 0.001*event.delta;
+		board.worldLocation.x-=1*zoomPoint.x*0.001*event.delta;
+		board.worldLocation.y-=1*zoomPoint.y*0.001*event.delta;
+		return false;
+	}
 }

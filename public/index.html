@@ -17,6 +17,7 @@
   <script language="javascript" type="text/javascript" src="board.js"></script>
   <script language="javascript" type="text/javascript" src="game_manager.js"></script>
 
+
   <!-- OK, YOU CAN MAKE CHANGES BELOW THIS LINE AGAIN -->
 
   <!-- This line removes any default padding and style. 
@@ -40,11 +41,27 @@
     <div class="row">
       <div id="game_holder" class="col-lg-6 offset-lg-3">
       </div>
-      <div id="client_list" class="col-lg-2 py-5 offset-lg-1">
-        <h4>Online Users</h4>
+      <div class="col-lg-2 py-5 offset-lg-1">
+        <div class="row">
+          <div id="client_list" class="col cus-panel" style="height: 40%">
+            <h4>Online Users</h4>
+          </div>
+        </div>
+        <div class="row cus-panel">
+          <div class="col">
+            <h4>Messages</h4>
+              <div class="form-group">
+                <textarea class="form-control" id="txt_messages" rows="6" readonly></textarea>
+              </div>
+              <div class="form-group">
+                <input type="email" class="form-control" id="txt_send" placeholder="Press enter to send..">
+              </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+
   <nav class="navbar navbar-dark bg-dark">
     <small class="navbar-text">Levi - 2018</small>
   </nav>

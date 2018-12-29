@@ -3,7 +3,8 @@ class Board{
 		this.boardSize = size;
 		this.cellH = 50;
 		this.cellW = 50;
-		this.worldLocation = createVector(-this.cellW*this.boardSize/2,-this.cellH*this.boardSize/2);
+		// this one's just for drawing the board at the beginning, for changing actual playing size, see below
+		this.worldLocation = createVector(-this.cellW*this.boardSize/3,-this.cellH*this.boardSize/3);
     	this.worldScale = 1.0;
     	this.isInGame = false;
 	}
@@ -53,8 +54,16 @@ class Board{
 		this.isInGame = true; 
 		this.turn = 0;
 		this.lastMove = createVector(-1,-1);
-		this.worldLocation = createVector(-this.cellW*this.boardSize/2,-this.cellH*this.boardSize/2);
+		this.worldLocation = createVector(-this.cellW*this.boardSize/4,-this.cellH*this.boardSize/4);
 	    this.worldScale = 1.0;
+	}
+	endGame(msg){
+		if(msg)
+			displayMessageOverlay(msg);
+		else
+			displayMessageOverlay("You lost!");
+		txtStatus.html('Game ended');
+		this.isInGame = false;
 	}
 	isStreak(x,y,dirX,dirY,player){
 		var winLen = this.boardSize<5?this.boardSize:5;
@@ -99,9 +108,12 @@ class Board{
 	    return result;
 	}
 	isInBoard(x,y){
-		var anchor1 = this.localToGlobal(0,0);
-		var anchor2 = this.localToGlobal(width,height);
-		var location = this.localToGlobal(x,y);
+		// var anchor1 = this.localToGlobal(0,0);
+		// var anchor2 = this.localToGlobal(width,height);
+		// var location = this.localToGlobal(x,y);
+		var anchor1 = createVector(0,0);
+		var anchor2 = createVector(width,height);
+		var location = createVector(x,y);
 		if(location.x<anchor1.x||location.y<anchor1.y||location.x>=anchor2.x||location.y>=anchor2.y)
 		{
 			return false;
